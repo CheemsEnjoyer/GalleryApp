@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/nav_graph"
+            app:startDestination="@id/homeFragment">
+
+    <fragment
+            android:id="@+id/homeFragment"
+            android:name="com.example.third_lab.HomeFragment"
+            android:label="Главная"
+            tools:layout="@layout/fragment_home" />
+
+    <fragment
+            android:id="@+id/categoryFragment"
+            android:name="com.example.third_lab.CategoryFragment"
+            android:label="Категории"
+            tools:layout="@layout/fragment_category" />
+
+    <fragment
+            android:id="@+id/privacyFragment"
+            android:name="com.example.third_lab.PrivacyFragment"
+            android:label="Приватность"
+            tools:layout="@layout/fragment_privacy" />
+</navigation>

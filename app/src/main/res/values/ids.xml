@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="categoriesRecyclerView" type="id"/>
+    <item name="addCategoryButton" type="id"/>
+    <item name="addButton" type="id"/>
+    <item name="categoryNameTextView" type="id"/>
+    <item name="categoriesFragment" type="id"/>
+    <item name="bottomNavigationView" type="id"/>
+    <item name="editText" type="id"/>
+    <item name="sendButton" type="id"/>
+    <item name="navigation_gallery" type="id"/>
+    <item name="textView" type="id"/>
+    <item name="bottom_navigation" type="id"/>
+    <item name="bottom_navigation_menu" type="id"/>
+    <item name="bottom_nav_menu" type="id"/>
+    <item name="editTextCategory" type="id"/>
+    <item name="editTextPrivacyLevel" type="id"/>
+    <item name="buttonSend" type="id"/>
+    <item name="textViewCategory" type="id"/>
+    <item name="textViewPrivacyLevel" type="id"/>
+</resources>

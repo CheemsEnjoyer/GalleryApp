@@ -12,13 +12,10 @@ class PrivacyActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_privacy)
 
-        // Инициализация TextView
         privacyTextView = findViewById(R.id.textViewPrivacyLevel)
 
-        // Получение данных из Intent
         val privacyLevel = intent.getStringExtra("privacyLevel")
 
-        // Установка текста в TextView
         privacyTextView.text = "Уровень приватности: $privacyLevel"
     }
 }

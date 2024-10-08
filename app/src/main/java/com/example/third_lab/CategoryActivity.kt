@@ -12,13 +12,10 @@ class CategoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_category)
 
-        // Инициализация TextView
         categoryTextView = findViewById(R.id.textViewCategory)
 
-        // Получение данных из Intent
         val category = intent.getStringExtra("category")
 
-        // Установка текста в TextView
         categoryTextView.text = "Категория: $category"
     }
 }

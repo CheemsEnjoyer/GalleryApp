@@ -4,21 +4,21 @@
             android:id="@+id/nav_graph"
             app:startDestination="@id/homeFragment">
 
-    <fragment
+    <activity
             android:id="@+id/homeFragment"
-            android:name="com.example.third_lab.HomeFragment"
+            android:name="com.example.third_lab.HomeActivity"
             android:label="Главная"
             tools:layout="@layout/activity_home" />
 
-    <fragment
+    <activity
             android:id="@+id/categoryFragment"
-            android:name="com.example.third_lab.CategoryFragment"
+            android:name="com.example.third_lab.CategoryActivity"
             android:label="Категории"
             tools:layout="@layout/activity_category" />
 
-    <fragment
+    <activity
             android:id="@+id/privacyFragment"
-            android:name="com.example.third_lab.PrivacyFragment"
+            android:name="com.example.third_lab.PrivacyActivity"
             android:label="Приватность"
             tools:layout="@layout/activity_privacy" />
 </navigation>

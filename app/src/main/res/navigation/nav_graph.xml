@@ -8,17 +8,17 @@
             android:id="@+id/homeFragment"
             android:name="com.example.third_lab.HomeFragment"
             android:label="Главная"
-            tools:layout="@layout/fragment_home" />
+            tools:layout="@layout/activity_home" />
 
     <fragment
             android:id="@+id/categoryFragment"
             android:name="com.example.third_lab.CategoryFragment"
             android:label="Категории"
-            tools:layout="@layout/fragment_category" />
+            tools:layout="@layout/activity_category" />
 
     <fragment
             android:id="@+id/privacyFragment"
             android:name="com.example.third_lab.PrivacyFragment"
             android:label="Приватность"
-            tools:layout="@layout/fragment_privacy" />
+            tools:layout="@layout/activity_privacy" />
 </navigation>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-            android:id="@+id/homeFragment"
+            android:id="@+id/menu_home"
             android:title="Главная"/>
     <item
-            android:id="@+id/categoryFragment"
+            android:id="@+id/menu_category"
             android:title="Категории"/>
     <item
-            android:id="@+id/privacyFragment"
+            android:id="@+id/menu_privacy"
             android:title="Приватность"/>
 </menu>

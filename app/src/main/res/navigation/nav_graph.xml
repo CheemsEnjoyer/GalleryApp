@@ -2,22 +2,22 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/nav_graph"
-            app:startDestination="@id/homeFragment">
+            app:startDestination="@id/menu_home">
 
     <activity
-            android:id="@+id/homeFragment"
-            android:name="com.example.third_lab.HomeActivity"
+            android:id="@+id/menu_home"
+            android:name="com.example.third_lab.MainActivity"
             android:label="Главная"
-            tools:layout="@layout/activity_home" />
+            tools:layout="@layout/activity_main" />
 
     <activity
-            android:id="@+id/categoryFragment"
+            android:id="@+id/menu_category"
             android:name="com.example.third_lab.CategoryActivity"
             android:label="Категории"
             tools:layout="@layout/activity_category" />
 
     <activity
-            android:id="@+id/privacyFragment"
+            android:id="@+id/menu_privacy"
             android:name="com.example.third_lab.PrivacyActivity"
             android:label="Приватность"
             tools:layout="@layout/activity_privacy" />

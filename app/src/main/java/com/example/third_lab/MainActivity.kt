@@ -20,7 +20,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
         categoryInput = findViewById(R.id.editTextCategory)
         privacyCheckBox = findViewById(R.id.checkBoxPrivacy)
         sendButton = findViewById(R.id.buttonSend)
@@ -37,7 +36,12 @@ class MainActivity : AppCompatActivity() {
 
                 val sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE)
                 val editor = sharedPreferences.edit()
-                editor.putString("category", category)
+
+                // Получаем существующий список категорий
+                val categoriesSet = sharedPreferences.getStringSet("categories", mutableSetOf())?.toMutableSet()
+                categoriesSet?.add(category) // Добавляем новую категорию
+
+                editor.putStringSet("categories", categoriesSet) // Сохраняем обновленный список категорий
                 editor.putString("privacyLevel", privacyLevel)
                 editor.apply()
 
@@ -64,5 +68,6 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
-        }
+    }
 }
+

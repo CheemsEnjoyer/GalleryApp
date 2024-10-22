@@ -6,16 +6,19 @@ import androidx.recyclerview.widget.RecyclerView
 
 class CategoryAdapter(private var categories: MutableList<String>) : RecyclerView.Adapter<CategoryViewHolder>() {
 
+    // Вызывается, когда RecyclerView нуждается в новом элементе для отображения
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_category, parent, false)
         return CategoryViewHolder(view)
     }
 
+    // Метод для связывания данных с ViewHolder. Вызывается для каждого элемента в списке.
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         holder.textViewCategoryItem.text = categories[position]
-        holder.currentPosition = position // Сохраняем текущую позицию
+        holder.currentPosition = position
     }
 
+    // Возвращает количество элементов в списке категорий
     override fun getItemCount(): Int {
         return categories.size
     }

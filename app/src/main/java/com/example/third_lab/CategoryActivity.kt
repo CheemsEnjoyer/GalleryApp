@@ -52,15 +52,15 @@ class CategoryActivity : AppCompatActivity() {
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            7 -> {
+            0 -> {
                 // Обработка обновления
-                showUpdateDialog(item.groupId) // Используем item.groupId для позиции
+                showUpdateDialog(item.groupId)
                 true
             }
             1 -> {
                 // Обработка удаления
-                adapter.deleteItem(item.groupId) // Используем item.groupId для позиции
-                updateSharedPreferences() // Обновляем SharedPreferences после удаления
+                adapter.deleteItem(item.groupId)
+                updateSharedPreferences()
                 true
             }
             else -> super.onContextItemSelected(item)
@@ -72,12 +72,10 @@ class CategoryActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Обновить категорию")
 
-        // Создание поля для ввода
         val input = EditText(this)
         input.hint = "Введите новую категорию"
         builder.setView(input)
 
-        // Настройка кнопок
         builder.setPositiveButton("Обновить") { dialog, _ ->
             val newCategory = input.text.toString()
             if (newCategory.isNotEmpty()) {

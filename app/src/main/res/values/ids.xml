@@ -18,4 +18,5 @@
     <item name="buttonSend" type="id"/>
     <item name="textViewCategory" type="id"/>
     <item name="textViewPrivacyLevel" type="id"/>
+    <item name="custom_toast_container" type="id"/>
 </resources>

@@ -31,7 +31,7 @@
             app:layout_constraintTop_toBottomOf="@id/checkBoxPrivacy"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_nav_menu"

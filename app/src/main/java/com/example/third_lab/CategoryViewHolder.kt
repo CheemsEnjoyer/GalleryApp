@@ -17,8 +17,8 @@ class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), Vi
 
     // Создание контекстного меню
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
-        menu?.add(adapterPosition, 0, 0, "Обновить")
-        menu?.add(adapterPosition, 1, 1, "Удалить")
+        menu?.add(adapterPosition, 100, 0, "Обновить")
+        menu?.add(adapterPosition, 101, 1, "Удалить")
         currentPosition = adapterPosition // Сохраняем позицию элемента
     }
 }

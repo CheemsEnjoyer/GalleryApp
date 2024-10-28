@@ -6,24 +6,23 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.io.File
 
-class PrivacyActivity : AppCompatActivity()  {
+class HistoryActivity : AppCompatActivity() {
 
-    private lateinit var privacyTextView: TextView
+    private lateinit var historyTextView: TextView
+
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_privacy)
+        setContentView(R.layout.activity_history)
 
-        val sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE)
-        val privacyLevel = sharedPreferences.getString("privacyLevel", "Не указано")
+        historyTextView = findViewById(R.id.historyTextView)
 
-        val textViewPrivacyLevel = findViewById<TextView>(R.id.textViewPrivacyLevel)
-        textViewPrivacyLevel.text = "Приватность: $privacyLevel"
+        historyTextView.text = readHistoryFromCsv()
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav_menu)
-        bottomNavigationView.selectedItemId = R.id.menu_privacy
-
+        bottomNavigationView.selectedItemId = R.id.menu_history
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_home -> {
@@ -32,14 +31,14 @@ class PrivacyActivity : AppCompatActivity()  {
                     startActivity(intent)
                     true
                 }
-                R.id.menu_category -> {
-                    val intent = Intent(this, CategoryActivity::class.java)
+                R.id.menu_privacy -> {
+                    val intent = Intent(this, PrivacyActivity::class.java)
                     finish()
                     startActivity(intent)
                     true
                 }
-                R.id.menu_history-> {
-                    val intent = Intent(this, HistoryActivity::class.java)
+                R.id.menu_category -> {
+                    val intent = Intent(this, CategoryActivity::class.java)
                     finish()
                     startActivity(intent)
                     true
@@ -53,5 +52,12 @@ class PrivacyActivity : AppCompatActivity()  {
                 else -> false
             }
         }
+    }
+
+    private fun readHistoryFromCsv(): String {
+        val historyFile = File(filesDir, "history.csv")
+        if (!historyFile.exists()) return "История пуста"
+
+        return historyFile.readText()
     }
 }

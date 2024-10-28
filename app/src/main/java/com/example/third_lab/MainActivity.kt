@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
     private lateinit var categoryInput: EditText
@@ -31,21 +32,30 @@ class MainActivity : AppCompatActivity() {
             } else {
                 val privacyLevel = if (privacyCheckBox.isChecked) "Приватно" else "Публично"
 
-                val sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
+                try {
+                    val sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE)
+                    val editor = sharedPreferences.edit()
 
-                // Получаем существующий список категорий
-                val categoriesString = sharedPreferences.getString("categories", "") ?: ""
-                val categoriesList = categoriesString.split(",").toMutableList()
-                categoriesList.add(category)
+                    val categoriesSet = sharedPreferences.getStringSet("categories", mutableSetOf())?.toMutableSet()
 
-                editor.putString("categories", categoriesList.joinToString(","))
-                editor.putString("privacyLevel", privacyLevel)
-                editor.apply()
+                    categoriesSet?.add(category)
 
-                showCustomToast(category, privacyLevel)
+                    editor.putStringSet("categories", categoriesSet)
+                    editor.putString("privacyLevel", privacyLevel)
+                    editor.apply()
+
+                    saveToHistory(category, privacyLevel)
+                    showCustomToast(category, privacyLevel)
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(this, "Произошла ошибка при сохранении данных", Toast.LENGTH_SHORT).show()
+                }
             }
         }
+
+
+
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav_menu)
 
@@ -59,6 +69,18 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_privacy -> {
                     val intent = Intent(this, PrivacyActivity::class.java)
+                    finish()
+                    startActivity(intent)
+                    true
+                }
+                R.id.menu_history -> {
+                    val intent = Intent(this, HistoryActivity::class.java)
+                    finish()
+                    startActivity(intent)
+                    true
+                }
+                R.id.menu_camera -> {
+                    val intent = Intent(this, CameraActivity::class.java)
                     finish()
                     startActivity(intent)
                     true
@@ -77,7 +99,6 @@ class MainActivity : AppCompatActivity() {
 
         textView.text = "Категория = $category, Приватность = $privacyLevel"
 
-        // В зависимости от уровня приватности меняем изображение
         if (privacyLevel == "Приватно") {
             imageView.setImageResource(R.drawable.image_locked)
         } else {
@@ -89,6 +110,14 @@ class MainActivity : AppCompatActivity() {
             view = layout
             show()
         }
+    }
+
+    fun saveToHistory(category: String, privacyLevel: String) {
+        val historyFile = File(filesDir, "history.csv")
+        val timestamp = System.currentTimeMillis()
+        val historyEntry = "$timestamp,$category,$privacyLevel\n"
+
+        historyFile.appendText(historyEntry)
     }
 }
 

@@ -45,6 +45,18 @@ class CategoryActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
+                R.id.menu_history -> {
+                    val intent = Intent(this, HistoryActivity::class.java)
+                    finish()
+                    startActivity(intent)
+                    true
+                }
+                R.id.menu_camera -> {
+                    val intent = Intent(this, CameraActivity::class.java)
+                    finish()
+                    startActivity(intent)
+                    true
+                }
                 else -> false
             }
         }
@@ -52,12 +64,12 @@ class CategoryActivity : AppCompatActivity() {
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            0 -> {
+            100 -> {
                 // Обработка обновления
                 showUpdateDialog(item.groupId)
                 true
             }
-            1 -> {
+            101 -> {
                 // Обработка удаления
                 adapter.deleteItem(item.groupId)
                 updateSharedPreferences()
@@ -92,7 +104,7 @@ class CategoryActivity : AppCompatActivity() {
     private fun updateSharedPreferences() {
         val sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        editor.putStringSet("categories", adapter.getCategories().toSet())
+        editor.putString("categories", adapter.getCategories().joinToString(","))
         editor.apply()
     }
 }

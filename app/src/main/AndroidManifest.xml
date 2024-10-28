@@ -25,6 +25,8 @@
         </activity>
         <activity android:name=".CategoryActivity" />
         <activity android:name=".PrivacyActivity" />
+        <activity android:name=".HistoryActivity" />
+        <activity android:name=".CameraActivity" />
     </application>
 
 </manifest>

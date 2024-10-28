@@ -21,4 +21,16 @@
             android:name="com.example.third_lab.PrivacyActivity"
             android:label="Приватность"
             tools:layout="@layout/activity_privacy" />
+
+    <activity
+            android:id="@+id/menu_history"
+            android:name="com.example.third_lab.HistoryActivity"
+            android:label="История"
+            tools:layout="@layout/activity_history" />
+
+    <activity
+            android:id="@+id/menu_camera"
+            android:name="com.example.third_lab.CameraActivity"
+            android:label="Камера"
+            tools:layout="@layout/activity_camera" />
 </navigation>

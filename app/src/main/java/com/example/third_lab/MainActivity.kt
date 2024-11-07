@@ -10,20 +10,26 @@ import java.io.File
 
 class MainActivity : AppCompatActivity() {
     private lateinit var categoryInput: EditText
+    private lateinit var descriptionInput: EditText // Новое поле для описания
     private lateinit var privacyCheckBox: CheckBox
     private lateinit var sendButton: Button
+    private lateinit var databaseWorker: DatabaseWorker // Экземпляр DatabaseWorker
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        databaseWorker = DatabaseWorker(this) // Инициализация DatabaseWorker
+
         categoryInput = findViewById(R.id.editTextCategory)
+        descriptionInput = findViewById(R.id.editTextDescription) // Инициализация поля описания
         privacyCheckBox = findViewById(R.id.checkBoxPrivacy)
         sendButton = findViewById(R.id.buttonSend)
 
         sendButton.setOnClickListener {
             val category = categoryInput.text.toString()
+            val description = descriptionInput.text.toString()
 
             if (category.isEmpty()) {
                 Toast.makeText(this, "Пожалуйста, введите категорию", Toast.LENGTH_SHORT).show()
@@ -33,29 +39,28 @@ class MainActivity : AppCompatActivity() {
                 val privacyLevel = if (privacyCheckBox.isChecked) "Приватно" else "Публично"
 
                 try {
-                    val sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE)
-                    val editor = sharedPreferences.edit()
+                    val categoryId = databaseWorker.addCategory(category)
 
-                    val categoriesSet = sharedPreferences.getStringSet("categories", mutableSetOf())?.toMutableSet()
+                    if (categoryId != -1L) {
+                        val descriptionResult = databaseWorker.addDescriptionForCategory(categoryId, description)
 
-                    categoriesSet?.add(category)
-
-                    editor.putStringSet("categories", categoriesSet)
-                    editor.putString("privacyLevel", privacyLevel)
-                    editor.apply()
-
-                    saveToHistory(category, privacyLevel)
-                    showCustomToast(category, privacyLevel)
+                        if (descriptionResult != -1L) {
+                            saveToHistory(category, description, privacyLevel)
+                            showCustomToast(category, description, privacyLevel)
+                        } else {
+                            Toast.makeText(this, "Ошибка при добавлении описания в базу данных", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Ошибка при добавлении категории в базу данных", Toast.LENGTH_SHORT).show()
+                    }
 
                 } catch (e: Exception) {
                     e.printStackTrace()
                     Toast.makeText(this, "Произошла ошибка при сохранении данных", Toast.LENGTH_SHORT).show()
                 }
+
             }
         }
-
-
-
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav_menu)
 
@@ -90,14 +95,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showCustomToast(category: String, privacyLevel: String) {
+    fun showCustomToast(category: String, description: String, privacyLevel: String) {
         val inflater = layoutInflater
         val layout = inflater.inflate(R.layout.custom_toast, findViewById(R.id.custom_toast_container))
 
         val imageView = layout.findViewById<ImageView>(R.id.toast_image)
         val textView = layout.findViewById<TextView>(R.id.toast_text)
 
-        textView.text = "Категория = $category, Приватность = $privacyLevel"
+        textView.text = "Категория: $category\nОписание: $description\nПриватность: $privacyLevel"
 
         if (privacyLevel == "Приватно") {
             imageView.setImageResource(R.drawable.image_locked)
@@ -105,19 +110,18 @@ class MainActivity : AppCompatActivity() {
             imageView.setImageResource(R.drawable.image_unlocked)
         }
 
-        with (Toast(this)) {
+        with(Toast(this)) {
             duration = Toast.LENGTH_SHORT
             view = layout
             show()
         }
     }
 
-    fun saveToHistory(category: String, privacyLevel: String) {
+    fun saveToHistory(category: String, description: String, privacyLevel: String) {
         val historyFile = File(filesDir, "history.csv")
         val timestamp = System.currentTimeMillis()
-        val historyEntry = "$timestamp,$category,$privacyLevel\n"
+        val historyEntry = "$timestamp,$category,$description,$privacyLevel\n"
 
         historyFile.appendText(historyEntry)
     }
 }
-

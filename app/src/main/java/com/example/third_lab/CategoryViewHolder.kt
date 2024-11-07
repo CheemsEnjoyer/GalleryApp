@@ -7,7 +7,8 @@ import androidx.recyclerview.widget.RecyclerView
 
 // ViewHolder для связывания данных категории с элементами интерфейса и для создания контекстного меню
 class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnCreateContextMenuListener {
-    val textViewCategoryItem: TextView = itemView.findViewById(R.id.textViewCategoryItem)
+    val textViewCategoryName: TextView = itemView.findViewById(R.id.textViewCategoryName)
+    val textViewCategoryDescription: TextView = itemView.findViewById(R.id.textViewCategoryDescription)
     var currentPosition: Int = 0
 
     // Устанавливаем контекстное меню на элемент списка

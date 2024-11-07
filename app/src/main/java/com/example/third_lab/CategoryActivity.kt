@@ -1,10 +1,10 @@
 package com.example.third_lab
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.EditText
+import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,16 +15,19 @@ class CategoryActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: CategoryAdapter
+    private lateinit var databaseHelper: DatabaseWorker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_category)
 
-        val sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE)
-        val categoriesSet = sharedPreferences.getStringSet("categories", setOf())
-        val categories = categoriesSet?.toList()?.toMutableList() ?: mutableListOf()
+        databaseHelper = DatabaseWorker(this)
+
+        // Получаем категории и описания из базы данных
+        val categories = databaseHelper.getAllCategoriesWithDescriptions()
+
         recyclerView = findViewById(R.id.recyclerViewCategories)
-        adapter = CategoryAdapter(categories)
+        adapter = CategoryAdapter(categories, databaseHelper)
 
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
@@ -39,24 +42,28 @@ class CategoryActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
+
                 R.id.menu_privacy -> {
                     val intent = Intent(this, PrivacyActivity::class.java)
                     finish()
                     startActivity(intent)
                     true
                 }
+
                 R.id.menu_history -> {
                     val intent = Intent(this, HistoryActivity::class.java)
                     finish()
                     startActivity(intent)
                     true
                 }
+
                 R.id.menu_camera -> {
                     val intent = Intent(this, CameraActivity::class.java)
                     finish()
                     startActivity(intent)
                     true
                 }
+
                 else -> false
             }
         }
@@ -65,46 +72,63 @@ class CategoryActivity : AppCompatActivity() {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             100 -> {
-                // Обработка обновления
                 showUpdateDialog(item.groupId)
                 true
             }
+
             101 -> {
-                // Обработка удаления
                 adapter.deleteItem(item.groupId)
-                updateSharedPreferences()
                 true
             }
+
             else -> super.onContextItemSelected(item)
         }
     }
 
-    // Метод для отображения диалога обновления
     private fun showUpdateDialog(position: Int) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Обновить категорию")
 
-        val input = EditText(this)
-        input.hint = "Введите новую категорию"
-        builder.setView(input)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(16, 16, 16, 16)
+        }
+
+        val inputName = EditText(this).apply {
+            hint = "Введите новое название категории"
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val inputDescription = EditText(this).apply {
+            hint = "Введите новое описание категории"
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        layout.addView(inputName)
+        layout.addView(inputDescription)
+
+        builder.setView(layout)
 
         builder.setPositiveButton("Обновить") { dialog, _ ->
-            val newCategory = input.text.toString()
-            if (newCategory.isNotEmpty()) {
-                adapter.updateItem(position, newCategory)
+            val newName = inputName.text.toString()
+            val newDescription = inputDescription.text.toString()
+            if (newName.isNotEmpty() && newDescription.isNotEmpty()) {
+                adapter.updateItem(position, newName, newDescription)
             }
             dialog.dismiss()
         }
+
         builder.setNegativeButton("Закрыть") { dialog, _ ->
             dialog.cancel()
         }
 
         builder.show()
     }
-    private fun updateSharedPreferences() {
-        val sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putString("categories", adapter.getCategories().joinToString(","))
-        editor.apply()
-    }
+
 }

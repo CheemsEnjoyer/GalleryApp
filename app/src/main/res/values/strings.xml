@@ -3,4 +3,5 @@
     <string name="enter_category">Введите категорию</string>
     <string name="privacy">Приватно</string>
     <string name="save">Сохранить</string>
+    <string name="select_category">Выберите категорию</string>
 </resources>

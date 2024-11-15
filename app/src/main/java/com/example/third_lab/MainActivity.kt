@@ -10,7 +10,6 @@ import java.io.File
 
 class MainActivity : AppCompatActivity() {
     private lateinit var categoryInput: EditText
-    private lateinit var descriptionInput: EditText // Новое поле для описания
     private lateinit var privacyCheckBox: CheckBox
     private lateinit var sendButton: Button
     private lateinit var databaseWorker: DatabaseWorker // Экземпляр DatabaseWorker
@@ -23,13 +22,11 @@ class MainActivity : AppCompatActivity() {
         databaseWorker = DatabaseWorker(this) // Инициализация DatabaseWorker
 
         categoryInput = findViewById(R.id.editTextCategory)
-        descriptionInput = findViewById(R.id.editTextDescription) // Инициализация поля описания
         privacyCheckBox = findViewById(R.id.checkBoxPrivacy)
         sendButton = findViewById(R.id.buttonSend)
 
         sendButton.setOnClickListener {
             val category = categoryInput.text.toString()
-            val description = descriptionInput.text.toString()
 
             if (category.isEmpty()) {
                 Toast.makeText(this, "Пожалуйста, введите категорию", Toast.LENGTH_SHORT).show()
@@ -42,14 +39,8 @@ class MainActivity : AppCompatActivity() {
                     val categoryId = databaseWorker.addCategory(category)
 
                     if (categoryId != -1L) {
-                        val descriptionResult = databaseWorker.addDescriptionForCategory(categoryId, description)
-
-                        if (descriptionResult != -1L) {
-                            saveToHistory(category, description, privacyLevel)
-                            showCustomToast(category, description, privacyLevel)
-                        } else {
-                            Toast.makeText(this, "Ошибка при добавлении описания в базу данных", Toast.LENGTH_SHORT).show()
-                        }
+                        saveToHistory(category, privacyLevel)
+                        showCustomToast(category, privacyLevel)
                     } else {
                         Toast.makeText(this, "Ошибка при добавлении категории в базу данных", Toast.LENGTH_SHORT).show()
                     }
@@ -58,7 +49,6 @@ class MainActivity : AppCompatActivity() {
                     e.printStackTrace()
                     Toast.makeText(this, "Произошла ошибка при сохранении данных", Toast.LENGTH_SHORT).show()
                 }
-
             }
         }
 
@@ -78,12 +68,6 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
-                R.id.menu_history -> {
-                    val intent = Intent(this, HistoryActivity::class.java)
-                    finish()
-                    startActivity(intent)
-                    true
-                }
                 R.id.menu_camera -> {
                     val intent = Intent(this, CameraActivity::class.java)
                     finish()
@@ -95,14 +79,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showCustomToast(category: String, description: String, privacyLevel: String) {
+    fun showCustomToast(category: String, privacyLevel: String) {
         val inflater = layoutInflater
         val layout = inflater.inflate(R.layout.custom_toast, findViewById(R.id.custom_toast_container))
 
         val imageView = layout.findViewById<ImageView>(R.id.toast_image)
         val textView = layout.findViewById<TextView>(R.id.toast_text)
 
-        textView.text = "Категория: $category\nОписание: $description\nПриватность: $privacyLevel"
+        textView.text = "Категория: $category\nПриватность: $privacyLevel"
 
         if (privacyLevel == "Приватно") {
             imageView.setImageResource(R.drawable.image_locked)
@@ -117,10 +101,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun saveToHistory(category: String, description: String, privacyLevel: String) {
+    fun saveToHistory(category: String, privacyLevel: String) {
         val historyFile = File(filesDir, "history.csv")
         val timestamp = System.currentTimeMillis()
-        val historyEntry = "$timestamp,$category,$description,$privacyLevel\n"
+        val historyEntry = "$timestamp,$category,$privacyLevel\n"
 
         historyFile.appendText(historyEntry)
     }

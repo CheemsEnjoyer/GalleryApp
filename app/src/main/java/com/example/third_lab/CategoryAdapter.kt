@@ -1,50 +1,111 @@
 package com.example.third_lab
 
-import android.view.LayoutInflater
-import android.view.ViewGroup
+import android.content.Context
+import android.view.*
+import android.widget.ImageView
+import android.widget.PopupMenu
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 
 class CategoryAdapter(
-    private var categories: MutableList<Pair<String, String>>, // Пары (название, описание)
-    private val databaseHelper: DatabaseWorker
-) : RecyclerView.Adapter<CategoryViewHolder>() {
+    var photos: MutableList<Photo>,
+    private val databaseHelper: DatabaseWorker,
+    private val context: Context // Передаем контекст для диалогов
+) : RecyclerView.Adapter<CategoryAdapter.PhotoViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_category, parent, false)
-        return CategoryViewHolder(view)
+    inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val imageViewPhoto: ImageView = itemView.findViewById(R.id.imageViewPhoto)
+
+        init {
+            itemView.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    showPhotoDialog(position) // Открываем диалог для показа фото
+                }
+            }
+
+            itemView.setOnLongClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    showContextMenu(itemView, position)
+                }
+                true
+            }
+        }
     }
 
-    override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
-        val (categoryName, description) = categories[position]
-        holder.textViewCategoryName.text = categoryName
-        holder.textViewCategoryDescription.text = description
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_photo, parent, false)
+        return PhotoViewHolder(view)
+    }
 
-        holder.currentPosition = position
+    override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
+        val photo = photos[position]
+        Glide.with(holder.itemView.context)
+            .load(photo.photoPath)
+            .into(holder.imageViewPhoto)
     }
 
     override fun getItemCount(): Int {
-        return categories.size
+        return photos.size
     }
 
-    fun updateItem(position: Int, newName: String, newDescription: String) {
-        val (oldName, _) = categories[position]
-        val updatedRows = databaseHelper.updateCategoryWithDescription(oldName, newName, newDescription)
-        if (updatedRows > 0) {
-            categories[position] = Pair(newName, newDescription)
-            notifyItemChanged(position)
+    // Метод для обновления данных
+    fun updateData(newPhotos: List<Photo>) {
+        photos.clear()
+        photos.addAll(newPhotos)
+        notifyDataSetChanged()
+    }
+
+    // Показываем диалог для просмотра и обновления фото
+    private fun showPhotoDialog(position: Int) {
+        val photo = photos[position]
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_photo, null)
+        val imageView = dialogView.findViewById<ImageView>(R.id.dialogImageView)
+
+        Glide.with(context)
+            .load(photo.photoPath)
+            .into(imageView)
+
+        AlertDialog.Builder(context)
+            .setTitle("Просмотр фото")
+            .setView(dialogView)
+            .setPositiveButton("Закрыть", null)
+            .setNegativeButton("Удалить") { _, _ ->
+                deleteItem(position)
+            }
+            .show()
+    }
+
+
+
+    // Показываем контекстное меню для обновления или удаления фото
+    private fun showContextMenu(view: View, position: Int) {
+        val popupMenu = PopupMenu(view.context, view)
+        popupMenu.menuInflater.inflate(R.menu.photo_context_menu, popupMenu.menu)
+        popupMenu.menu.findItem(R.id.menu_update_photo).isVisible = false // Скрываем пункт обновления
+
+        popupMenu.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.menu_delete_photo -> {
+                    deleteItem(position) // Удаляем фото
+                    true
+                }
+                else -> false
+            }
         }
+        popupMenu.show()
     }
 
+
+    // Удаляем фото из базы данных и обновляем адаптер
     fun deleteItem(position: Int) {
-        val (categoryName, _) = categories[position]
-        val deletedRows = databaseHelper.deleteCategoryWithDescription(categoryName)
+        val photo = photos[position]
+        val deletedRows = databaseHelper.deletePhoto(photo.id)
         if (deletedRows > 0) {
-            categories.removeAt(position)
+            photos.removeAt(position)
             notifyItemRemoved(position)
         }
-    }
-
-    fun getCategories(): List<Pair<String, String>> {
-        return categories
     }
 }

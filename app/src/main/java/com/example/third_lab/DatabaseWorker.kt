@@ -5,21 +5,24 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import androidx.core.database.getLongOrNull
 
 class DatabaseWorker(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(CREATE_TABLE_CATEGORIES)
-        db.execSQL(CREATE_TABLE_DESCRIPTIONS)
+        db.execSQL(CREATE_TABLE_PHOTOS)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_DESCRIPTIONS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_CATEGORIES")
-        onCreate(db)
+        if (oldVersion < DATABASE_VERSION) {
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_PHOTOS")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_CATEGORIES")
+            onCreate(db)
+        }
     }
 
-    // Добавление новой категории в таблицу categories
+    // Добавление новой категории
     fun addCategory(categoryName: String): Long {
         val db = writableDatabase
         val values = ContentValues().apply {
@@ -28,60 +31,93 @@ class DatabaseWorker(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return db.insert(TABLE_CATEGORIES, null, values)
     }
 
-    // Добавление описания, связанного с категорией
-    fun addDescriptionForCategory(categoryId: Long, description: String): Long {
+    // Добавление новой фотографии с опциональной категорией
+    fun addPhotoForCategory(categoryId: Long, photoPath: String): Long {
         val db = writableDatabase
         val values = ContentValues().apply {
-            put(COLUMN_DESCRIPTION_TEXT, description)
-            put(COLUMN_DESCRIPTION_CATEGORY_ID, categoryId)
+            put("category_id", categoryId)
+            put("photo_path", photoPath)
         }
-        return db.insert(TABLE_DESCRIPTIONS, null, values)
+        return db.insert("photos", null, values)
+    }
+
+    // Получение всех категорий
+    fun getAllCategories(): List<Category> {
+        val categories = mutableListOf<Category>()
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT $COLUMN_CATEGORY_ID, $COLUMN_CATEGORY_NAME FROM $TABLE_CATEGORIES", null)
+
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_CATEGORY_ID))
+                val name = it.getString(it.getColumnIndexOrThrow(COLUMN_CATEGORY_NAME))
+                categories.add(Category(id, name))
+            }
+        }
+        return categories
     }
 
 
-    fun getAllCategoriesWithDescriptions(): MutableList<Pair<String, String>> {
-        val categoriesWithDescriptions = mutableListOf<Pair<String, String>>()
+
+    // Получение всех фотографий
+    fun getAllPhotos(): List<Photo> {
+        val photos = mutableListOf<Photo>()
         val db = readableDatabase
-        val cursor: Cursor = db.rawQuery(
-            """
-            SELECT ${TABLE_CATEGORIES}.${COLUMN_CATEGORY_NAME}, ${TABLE_DESCRIPTIONS}.${COLUMN_DESCRIPTION_TEXT}
-            FROM $TABLE_CATEGORIES
-            LEFT JOIN $TABLE_DESCRIPTIONS 
-            ON ${TABLE_CATEGORIES}.${COLUMN_CATEGORY_ID} = ${TABLE_DESCRIPTIONS}.${COLUMN_DESCRIPTION_CATEGORY_ID}
-        """, null
+        val cursor = db.query(
+            TABLE_PHOTOS,
+            null, // Все столбцы
+            null, null, null, null, null
         )
 
         cursor.use {
             while (cursor.moveToNext()) {
-                val name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY_NAME))
-                val description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION_TEXT)) ?: ""
-                categoriesWithDescriptions.add(name to description)
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_PHOTO_ID))
+                val categoryId = cursor.getLongOrNull(cursor.getColumnIndexOrThrow(COLUMN_PHOTO_CATEGORY_ID))
+                val photoPath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PHOTO_PATH))
+
+                photos.add(Photo(id, categoryId, photoPath))
             }
         }
 
-        return categoriesWithDescriptions
+        return photos
     }
 
-    // Удаляет категорию и все связанные с ней описания
-    fun deleteCategoryWithDescription(categoryName: String): Int {
+    // Получение фотографий по идентификатору категории
+    fun getPhotosByCategoryId(categoryId: Long): List<Photo> {
+        val photos = mutableListOf<Photo>()
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_PHOTOS,
+            null,
+            "$COLUMN_PHOTO_CATEGORY_ID = ?",
+            arrayOf(categoryId.toString()),
+            null, null, null
+        )
+
+        cursor.use {
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_PHOTO_ID))
+                val photoPath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PHOTO_PATH))
+                photos.add(Photo(id, categoryId, photoPath))
+            }
+        }
+
+        return photos
+    }
+
+    // Удаление категории по ID
+    fun deleteCategory(categoryId: Long): Int {
         val db = writableDatabase
-        db.beginTransaction()
-        try {
-            val categoryId = getCategoryIdByName(categoryName)
-            if (categoryId != null) {
-                // Удаляем описания, связанные с категорией
-                deleteDescriptionByCategoryId(categoryId)
-                // Удаляем саму категорию
-                val deletedRows = db.delete(TABLE_CATEGORIES, "$COLUMN_CATEGORY_ID = ?", arrayOf(categoryId.toString()))
-                db.setTransactionSuccessful()
-                return deletedRows
-            }
-            return 0
-        } finally {
-            db.endTransaction()
-        }
+        return db.delete(TABLE_CATEGORIES, "$COLUMN_CATEGORY_ID = ?", arrayOf(categoryId.toString()))
     }
-    // Получение ID категории по её имени
+
+    // Удаление фотографии по ID
+    fun deletePhoto(photoId: Long): Int {
+        val db = writableDatabase
+        return db.delete(TABLE_PHOTOS, "$COLUMN_PHOTO_ID = ?", arrayOf(photoId.toString()))
+    }
+
+    // Получение ID категории по ее имени
     fun getCategoryIdByName(categoryName: String): Long? {
         val db = readableDatabase
         val cursor = db.query(
@@ -99,7 +135,7 @@ class DatabaseWorker(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return null
     }
 
-    // Обновление имени категории по ID
+    // Обновление названия категории по ID
     fun updateCategoryName(categoryId: Long, newName: String): Int {
         val db = writableDatabase
         val values = ContentValues().apply {
@@ -108,64 +144,22 @@ class DatabaseWorker(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return db.update(TABLE_CATEGORIES, values, "$COLUMN_CATEGORY_ID = ?", arrayOf(categoryId.toString()))
     }
 
-    // Обновление описания по ID категории
-    fun updateDescription(categoryId: Long, newDescription: String): Int {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COLUMN_DESCRIPTION_TEXT, newDescription)
-        }
-        return db.update(TABLE_DESCRIPTIONS, values, "$COLUMN_DESCRIPTION_CATEGORY_ID = ?", arrayOf(categoryId.toString()))
-    }
-
-    // Удаление категории по ID
-    fun deleteCategory(categoryId: Long): Int {
-        val db = writableDatabase
-        return db.delete(TABLE_CATEGORIES, "$COLUMN_CATEGORY_ID = ?", arrayOf(categoryId.toString()))
-    }
-
-    // Удаление описаний по ID категории
-    fun deleteDescriptionByCategoryId(categoryId: Long): Int {
-        val db = writableDatabase
-        return db.delete(TABLE_DESCRIPTIONS, "$COLUMN_DESCRIPTION_CATEGORY_ID = ?", arrayOf(categoryId.toString()))
-    }
-
-    // Обновляет название категории и описание, связанное с ней
-    fun updateCategoryWithDescription(oldName: String, newName: String, newDescription: String): Int {
-        val db = writableDatabase
-        db.beginTransaction()
-        try {
-            val categoryId = getCategoryIdByName(oldName)
-            if (categoryId != null) {
-                // Обновляем имя категории
-                updateCategoryName(categoryId, newName)
-                // Обновляем описание
-                updateDescription(categoryId, newDescription)
-                db.setTransactionSuccessful()
-                return 1 // Возвращаем 1, если обновление прошло успешно
-            }
-            return 0
-        } finally {
-            db.endTransaction()
-        }
-    }
-
 
     companion object {
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 4
         private const val DATABASE_NAME = "categories.db"
 
-        // Таблица categories
+        // Таблица категорий
         const val TABLE_CATEGORIES = "categories"
         const val COLUMN_CATEGORY_ID = "id"
         const val COLUMN_CATEGORY_NAME = "name"
 
-        // Таблица descriptions
-        const val TABLE_DESCRIPTIONS = "descriptions"
-        const val COLUMN_DESCRIPTION_ID = "id"
-        const val COLUMN_DESCRIPTION_TEXT = "description"
-        const val COLUMN_DESCRIPTION_CATEGORY_ID = "category_id" // Внешний ключ на categories.id
+        // Таблица фотографий
+        const val TABLE_PHOTOS = "photos"
+        const val COLUMN_PHOTO_ID = "id"
+        const val COLUMN_PHOTO_PATH = "photo_path"
+        const val COLUMN_PHOTO_CATEGORY_ID = "category_id"
 
-        // SQL для создания таблицы categories
         private const val CREATE_TABLE_CATEGORIES = """
             CREATE TABLE $TABLE_CATEGORIES (
                 $COLUMN_CATEGORY_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -173,13 +167,12 @@ class DatabaseWorker(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             )
         """
 
-        // SQL для создания таблицы descriptions
-        private const val CREATE_TABLE_DESCRIPTIONS = """
-            CREATE TABLE $TABLE_DESCRIPTIONS (
-                $COLUMN_DESCRIPTION_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                $COLUMN_DESCRIPTION_TEXT TEXT NOT NULL,
-                $COLUMN_DESCRIPTION_CATEGORY_ID INTEGER,
-                FOREIGN KEY($COLUMN_DESCRIPTION_CATEGORY_ID) REFERENCES $TABLE_CATEGORIES($COLUMN_CATEGORY_ID)
+        private const val CREATE_TABLE_PHOTOS = """
+            CREATE TABLE $TABLE_PHOTOS (
+                $COLUMN_PHOTO_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_PHOTO_PATH TEXT NOT NULL,
+                $COLUMN_PHOTO_CATEGORY_ID INTEGER,
+                FOREIGN KEY($COLUMN_PHOTO_CATEGORY_ID) REFERENCES $TABLE_CATEGORIES($COLUMN_CATEGORY_ID) ON DELETE SET NULL
             )
         """
     }

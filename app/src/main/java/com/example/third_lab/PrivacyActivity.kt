@@ -38,12 +38,6 @@ class PrivacyActivity : AppCompatActivity()  {
                     startActivity(intent)
                     true
                 }
-                R.id.menu_history-> {
-                    val intent = Intent(this, HistoryActivity::class.java)
-                    finish()
-                    startActivity(intent)
-                    true
-                }
                 R.id.menu_camera -> {
                     val intent = Intent(this, CameraActivity::class.java)
                     finish()

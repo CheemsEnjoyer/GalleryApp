@@ -6,9 +6,12 @@ import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.*
+import java.util.concurrent.Executors
 
 class CategoryActivity : AppCompatActivity() {
 
@@ -17,7 +20,10 @@ class CategoryActivity : AppCompatActivity() {
     private lateinit var databaseHelper: DatabaseWorker
     private lateinit var spinnerCategories: Spinner
     private lateinit var buttonManageCategories: Button
-    private var categoryList: List<Category> = listOf() // Список категорий
+    private var categoryList: List<Category> = listOf()
+    private var loadPhotosJob: Job? = null
+    private val executorService = Executors.newSingleThreadExecutor()
+    private var filterPhotosJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,30 +85,52 @@ class CategoryActivity : AppCompatActivity() {
     }
 
     private fun loadCategories() {
-        categoryList = databaseHelper.getAllCategories()
-        val categoryNames = mutableListOf<String>()
-        categoryNames.add("Все категории")
-        categoryNames.addAll(categoryList.map { it.name })
+        executorService.execute {
+            val categories = databaseHelper.getAllCategories()
+            categoryList = categories
+            val categoryNames = mutableListOf<String>().apply {
+                add("Все категории")
+                addAll(categories.map { it.name })
+            }
 
-        val adapterSpinner = ArrayAdapter(this, android.R.layout.simple_spinner_item, categoryNames)
-        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerCategories.adapter = adapterSpinner
+            runOnUiThread {
+                val adapterSpinner = ArrayAdapter(this@CategoryActivity, android.R.layout.simple_spinner_item, categoryNames)
+                adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinnerCategories.adapter = adapterSpinner
+            }
+        }
     }
-    
+
+
     private fun loadPhotos() {
-        val photos = databaseHelper.getAllPhotos()
-        adapter.updateData(photos)
+        loadPhotosJob = lifecycleScope.launch(Dispatchers.IO) {
+            val photos = databaseHelper.getAllPhotos()
+            withContext(Dispatchers.Main) {
+                adapter.updateData(photos)
+            }
+        }
     }
+
 
     // Фильтрация фотографий по выбранной категории
     private fun filterPhotosByCategory(categoryId: Long?) {
-        val photos = if (categoryId == null) {
-            databaseHelper.getAllPhotos()
-        } else {
-            databaseHelper.getPhotosByCategoryId(categoryId)
+        // Отменяем предыдущую задачу, если она ещё выполняется
+        filterPhotosJob?.cancel()
+
+        filterPhotosJob = CoroutineScope(Dispatchers.IO).launch {
+            val photos = if (categoryId == null) {
+                databaseHelper.getAllPhotos()
+            } else {
+                databaseHelper.getPhotosByCategoryId(categoryId)
+            }
+
+            // Dispatchers.Main, чтобы обновить UI
+            withContext(Dispatchers.Main) {
+                adapter.updateData(photos)
+            }
         }
-        adapter.updateData(photos)
     }
+
 
     // Показать диалог управления категориями
     private fun showManageCategoriesDialog() {
@@ -180,10 +208,12 @@ class CategoryActivity : AppCompatActivity() {
             .setTitle("Удалить категорию")
             .setMessage("Вы уверены, что хотите удалить категорию '${category.name}'?")
             .setPositiveButton("Удалить") { dialog, _ ->
-                val deletedRows = databaseHelper.deleteCategory(category.id)
-                if (deletedRows > 0) {
-                    loadCategories()
-                    filterPhotosByCategory(null)
+                executorService.execute {
+                    val deletedRows = databaseHelper.deleteCategory(category.id)
+                    if (deletedRows > 0) {
+                        loadCategories() // Запускаем загрузку только после удаления
+                        filterPhotosByCategory(null)
+                    }
                 }
                 dialog.dismiss()
             }
@@ -191,6 +221,11 @@ class CategoryActivity : AppCompatActivity() {
                 dialog.dismiss()
             }
             .show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        filterPhotosJob?.cancel() // Отменяем выполнение корутины при выходе из Activity
     }
 
 }

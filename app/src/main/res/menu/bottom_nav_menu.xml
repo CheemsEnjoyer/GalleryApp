@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-            android:id="@+id/menu_home"
+            android:id="@+id/homeFragment"
             android:icon="@drawable/ic_home"
-            android:title="Главная"/>
+            android:title="Главная" />
     <item
-            android:id="@+id/menu_category"
+            android:id="@+id/categoryFragment"
             android:icon="@drawable/ic_category"
-            android:title="Категории"/>
+            android:title="Категории" />
     <item
-            android:id="@+id/menu_privacy"
-            android:icon="@drawable/ic_privacy"
-            android:title="Приватность"/>
-
-    <item
-            android:id="@+id/menu_camera"
+            android:id="@+id/cameraFragment"
             android:icon="@drawable/ic_camera"
-            android:title="Камера"/>
+            android:title="Камера" />
 </menu>

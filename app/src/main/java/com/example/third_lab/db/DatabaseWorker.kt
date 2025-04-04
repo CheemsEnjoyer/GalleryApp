@@ -1,11 +1,12 @@
-package com.example.third_lab
+package com.example.third_lab.db
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.core.database.getLongOrNull
+import com.example.third_lab.domain.entity.Category
+import com.example.third_lab.domain.entity.Photo
 
 class DatabaseWorker(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -146,7 +147,7 @@ class DatabaseWorker(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
 
     companion object {
-        private const val DATABASE_VERSION = 4
+        private const val DATABASE_VERSION = 7
         private const val DATABASE_NAME = "categories.db"
 
         // Таблица категорий

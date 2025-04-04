@@ -1,5 +1,6 @@
-package com.example.third_lab
+package com.example.third_lab.presentation.adapters
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.*
 import android.widget.ImageView
@@ -7,11 +8,13 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.third_lab.R
+import com.example.third_lab.domain.entity.Photo
 
 class CategoryAdapter(
     var photos: MutableList<Photo>,
-    private val databaseHelper: DatabaseWorker,
-    private val context: Context // Передаем контекст для диалогов
+    private val onDelete: (Photo) -> Unit,
+    private val context: Context
 ) : RecyclerView.Adapter<CategoryAdapter.PhotoViewHolder>() {
 
     inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -21,7 +24,7 @@ class CategoryAdapter(
             itemView.setOnClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    showPhotoDialog(position) // Открываем диалог для показа фото
+                    showPhotoDialog(position)
                 }
             }
 
@@ -47,65 +50,45 @@ class CategoryAdapter(
             .into(holder.imageViewPhoto)
     }
 
-    override fun getItemCount(): Int {
-        return photos.size
-    }
+    override fun getItemCount(): Int = photos.size
 
-    // Метод для обновления данных
+    @SuppressLint("NotifyDataSetChanged")
     fun updateData(newPhotos: List<Photo>) {
         photos.clear()
         photos.addAll(newPhotos)
         notifyDataSetChanged()
     }
 
-    // Показываем диалог для просмотра и обновления фото
     private fun showPhotoDialog(position: Int) {
         val photo = photos[position]
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_photo, null)
         val imageView = dialogView.findViewById<ImageView>(R.id.dialogImageView)
 
-        Glide.with(context)
-            .load(photo.photoPath)
-            .into(imageView)
+        Glide.with(context).load(photo.photoPath).into(imageView)
 
         AlertDialog.Builder(context)
             .setTitle("Просмотр фото")
             .setView(dialogView)
             .setPositiveButton("Закрыть", null)
             .setNegativeButton("Удалить") { _, _ ->
-                deleteItem(position)
+                onDelete(photo)
             }
             .show()
     }
 
-
-
-    // Показываем контекстное меню для обновления или удаления фото
     private fun showContextMenu(view: View, position: Int) {
         val popupMenu = PopupMenu(view.context, view)
         popupMenu.menuInflater.inflate(R.menu.photo_context_menu, popupMenu.menu)
-        popupMenu.menu.findItem(R.id.menu_update_photo).isVisible = false // Скрываем пункт обновления
+        popupMenu.menu.findItem(R.id.menu_update_photo).isVisible = false
 
         popupMenu.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.menu_delete_photo -> {
-                    deleteItem(position) // Удаляем фото
-                    true
-                }
-                else -> false
-            }
+            if (item.itemId == R.id.menu_delete_photo) {
+                onDelete(photos[position])
+                true
+            } else false
         }
+
         popupMenu.show()
     }
-
-
-    // Удаляем фото из базы данных и обновляем адаптер
-    fun deleteItem(position: Int) {
-        val photo = photos[position]
-        val deletedRows = databaseHelper.deletePhoto(photo.id)
-        if (deletedRows > 0) {
-            photos.removeAt(position)
-            notifyItemRemoved(position)
-        }
-    }
 }
+

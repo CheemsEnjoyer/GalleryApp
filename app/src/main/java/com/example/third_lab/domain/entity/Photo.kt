@@ -1,4 +1,4 @@
-package com.example.third_lab
+package com.example.third_lab.domain.entity
 
 data class Photo(
     val id: Long,

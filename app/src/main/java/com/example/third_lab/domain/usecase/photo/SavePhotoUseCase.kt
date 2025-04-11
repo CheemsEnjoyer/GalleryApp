@@ -2,8 +2,9 @@ package com.example.third_lab.domain.usecase
 
 import android.graphics.Bitmap
 import com.example.third_lab.domain.port.PhotoRepository
+import javax.inject.Inject
 
-class SavePhotoUseCase(private val repository: PhotoRepository) {
+class SavePhotoUseCase  @Inject constructor(private val repository: PhotoRepository) {
     operator fun invoke(bitmap: Bitmap, categoryName: String): Result<Unit> {
         if (categoryName.isEmpty()) {
             return Result.failure(Exception("Категория не может быть пустой"))

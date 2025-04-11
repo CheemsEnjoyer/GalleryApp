@@ -12,12 +12,15 @@ import com.example.third_lab.domain.usecase.SavePhotoUseCase
 import com.example.third_lab.domain.usecase.category.LoadCategoriesUseCase
 import com.example.third_lab.domain.usecase.photo.DeletePhotoUseCase
 import com.example.third_lab.domain.usecase.photo.FilterPhotosByCategoryUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PhotoViewModel(
+@HiltViewModel
+class PhotoViewModel @Inject constructor(
     application: Application,
     private val loadPhotosUseCase: LoadPhotosUseCase,
     private val savePhotoUseCase: SavePhotoUseCase,

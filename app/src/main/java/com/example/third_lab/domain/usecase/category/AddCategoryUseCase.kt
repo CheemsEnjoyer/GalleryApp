@@ -1,8 +1,9 @@
 package com.example.third_lab.domain.usecase.category
 
 import com.example.third_lab.domain.port.CategoryRepository
+import javax.inject.Inject
 
-class AddCategoryUseCase(private val repository: CategoryRepository) {
+class AddCategoryUseCase @Inject constructor (private val repository: CategoryRepository)  {
     operator fun invoke(category: String, privacyLevel: String): Result<Unit> {
         if (category.isEmpty()) return Result.failure(Exception("Категория не может быть пустой"))
         val id = repository.addCategory(category)

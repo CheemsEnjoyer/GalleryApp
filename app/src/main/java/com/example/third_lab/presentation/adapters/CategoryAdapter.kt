@@ -9,15 +9,18 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.third_lab.R
+import com.example.third_lab.databinding.FragmentCategoryBinding
+import com.example.third_lab.databinding.ItemPhotoBinding
 import com.example.third_lab.domain.entity.Photo
 
 class CategoryAdapter(
     var photos: MutableList<Photo>,
     private val onDelete: (Photo) -> Unit,
     private val context: Context
+
 ) : RecyclerView.Adapter<CategoryAdapter.PhotoViewHolder>() {
 
-    inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class PhotoViewHolder(val binding: ItemPhotoBinding) : RecyclerView.ViewHolder(binding.root) {
         val imageViewPhoto: ImageView = itemView.findViewById(R.id.imageViewPhoto)
 
         init {
@@ -39,8 +42,8 @@ class CategoryAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_photo, parent, false)
-        return PhotoViewHolder(view)
+        val inflater = LayoutInflater.from(parent.context)
+        return PhotoViewHolder(ItemPhotoBinding.inflate(inflater, parent, false))
     }
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {

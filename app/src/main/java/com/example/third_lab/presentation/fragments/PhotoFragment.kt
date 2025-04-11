@@ -8,29 +8,23 @@ import android.view.*
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.third_lab.data.datasource.CategoryLocalDataSource
-import com.example.third_lab.data.datasource.PhotoLocalDataSource
-import com.example.third_lab.data.repository.CategoryRepositoryImp
-import com.example.third_lab.data.repository.PhotoRepositoryImp
+import com.example.third_lab.databinding.FragmentCameraBinding
 import com.example.third_lab.domain.entity.Category
-import com.example.third_lab.domain.usecase.photo.LoadPhotosUseCase
-import com.example.third_lab.domain.usecase.SavePhotoUseCase
-import com.example.third_lab.domain.usecase.category.LoadCategoriesUseCase
-import com.example.third_lab.domain.usecase.photo.DeletePhotoUseCase
-import com.example.third_lab.domain.usecase.photo.FilterPhotosByCategoryUseCase
-import com.example.third_lab.presentation.controller.PhotoViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class PhotoFragment : Fragment() {
 
     private lateinit var photoImageView: ImageView
     private lateinit var categorySpinner: Spinner
     private lateinit var takePhotoButton: Button
-    private lateinit var photoViewModel: PhotoViewModel
+    private val photoViewModel: PhotoViewModel by viewModels()
+    private lateinit var binding: FragmentCameraBinding
     private var categoryList: List<Category> = emptyList()
 
     private val takePhotoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -46,41 +40,27 @@ class PhotoFragment : Fragment() {
         }
     }
 
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.fragment_camera, container, false)
+        binding = FragmentCameraBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        photoImageView = view.findViewById(R.id.photoImageView)
-        categorySpinner = view.findViewById(R.id.categorySpinner)
-        takePhotoButton = view.findViewById(R.id.takePhotoButton)
-        val application = requireActivity().application
-        val photoRepo = PhotoRepositoryImp(PhotoLocalDataSource(requireContext()))
-        val categoryRepo = CategoryRepositoryImp(CategoryLocalDataSource(requireContext()))
+        photoImageView = binding.photoImageView
+        categorySpinner = binding.categorySpinner
+        takePhotoButton = binding.takePhotoButton
 
-        val photoFactory = PhotoViewModelFactory(
-            application,
-            LoadPhotosUseCase(photoRepo),
-            SavePhotoUseCase(photoRepo),
-            DeletePhotoUseCase(photoRepo),
-            FilterPhotosByCategoryUseCase(photoRepo),
-            LoadCategoriesUseCase(categoryRepo)
-        )
-
-
-        photoViewModel = ViewModelProvider(this, photoFactory)[PhotoViewModel::class.java]
+        // До этого тут был код создания PhotoRepository, CategoryRepository, UseCase'ов и фабрики
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 photoViewModel.categories.collect { categories ->
-                    categoryList = categories  // сохраняем категории отдельно
+                    categoryList = categories
                     val adapter = ArrayAdapter(
                         requireContext(),
                         android.R.layout.simple_spinner_item,
                         categories.map { it.name }
                     )
-
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                     categorySpinner.adapter = adapter
 
@@ -91,7 +71,6 @@ class PhotoFragment : Fragment() {
             }
         }
 
-
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 photoViewModel.photoBitmap.collect { bitmap ->
@@ -100,20 +79,14 @@ class PhotoFragment : Fragment() {
             }
         }
 
-
         takePhotoButton.setOnClickListener {
-            val selectedPosition = categorySpinner.selectedItemPosition
-            val selectedCategoryName = categoryList.getOrNull(selectedPosition)?.name
-
             val takePictureIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
             if (takePictureIntent.resolveActivity(requireActivity().packageManager) != null) {
                 takePhotoLauncher.launch(takePictureIntent)
             }
         }
 
-
         photoViewModel.loadPhotos()
         photoViewModel.loadCategories()
     }
-
 }

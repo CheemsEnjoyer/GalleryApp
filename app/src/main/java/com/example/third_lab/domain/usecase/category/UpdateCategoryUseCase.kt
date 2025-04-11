@@ -1,8 +1,9 @@
 package com.example.third_lab.domain.usecase
 
 import com.example.third_lab.domain.port.CategoryRepository
+import javax.inject.Inject
 
-class UpdateCategoryUseCase(private val repository: CategoryRepository) {
+class UpdateCategoryUseCase @Inject constructor(private val repository: CategoryRepository) {
     operator fun invoke(categoryId: Long, newName: String): Result<Unit> {
         if (newName.isBlank()) {
             return Result.failure(Exception("Название не может быть пустым"))

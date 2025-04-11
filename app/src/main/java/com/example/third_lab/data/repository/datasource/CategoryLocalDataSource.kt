@@ -3,8 +3,11 @@ package com.example.third_lab.data.datasource
 import android.content.Context
 import com.example.third_lab.db.DatabaseWorker
 import com.example.third_lab.domain.entity.Category
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class CategoryLocalDataSource(context: Context) {
+class CategoryLocalDataSource @Inject constructor(
+    @ApplicationContext context: Context) {
 
     private val db = DatabaseWorker(context)
 

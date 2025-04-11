@@ -7,12 +7,15 @@ import com.example.third_lab.domain.entity.Category
 import com.example.third_lab.domain.usecase.DeleteCategoryUseCase
 import com.example.third_lab.domain.usecase.UpdateCategoryUseCase
 import com.example.third_lab.domain.usecase.category.LoadCategoriesUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CategoryViewModel(
+@HiltViewModel
+class CategoryViewModel @Inject constructor (
     application: Application,
     private val loadCategoriesUseCase: LoadCategoriesUseCase,
     private val updateCategoryUseCase: UpdateCategoryUseCase,

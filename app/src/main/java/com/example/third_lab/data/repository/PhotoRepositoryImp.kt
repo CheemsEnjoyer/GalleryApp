@@ -4,8 +4,9 @@ import android.graphics.Bitmap
 import com.example.third_lab.data.datasource.PhotoLocalDataSource
 import com.example.third_lab.domain.entity.Photo
 import com.example.third_lab.domain.port.PhotoRepository
+import javax.inject.Inject
 
-class PhotoRepositoryImp(
+class PhotoRepositoryImp @Inject constructor(
     private val localDataSource: PhotoLocalDataSource
 ) : PhotoRepository {
 

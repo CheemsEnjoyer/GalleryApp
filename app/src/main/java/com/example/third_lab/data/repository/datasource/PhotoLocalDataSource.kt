@@ -4,12 +4,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.example.third_lab.db.DatabaseWorker
 import com.example.third_lab.domain.entity.Photo
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import javax.inject.Inject
 
-class PhotoLocalDataSource(
-    context: Context
+class PhotoLocalDataSource @Inject constructor(
+    @ApplicationContext context: Context
 ) {
     private val db = DatabaseWorker(context)
     private val filesDir: File = context.filesDir

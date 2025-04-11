@@ -3,8 +3,9 @@ package com.example.third_lab.data.repository
 import com.example.third_lab.data.datasource.CategoryLocalDataSource
 import com.example.third_lab.domain.entity.Category
 import com.example.third_lab.domain.port.CategoryRepository
+import javax.inject.Inject
 
-class CategoryRepositoryImp(
+class CategoryRepositoryImp @Inject constructor(
     private val localDataSource: CategoryLocalDataSource
 ) : CategoryRepository {
 
